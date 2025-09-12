@@ -1,0 +1,18 @@
+{
+    "name": "coach_app/api-php",
+    "autoload": {
+        "psr-4": {
+            "CoachApp\\ApiPhp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Juan Camilo",
+            "email": "amayajuan984@gmail.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.11",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
