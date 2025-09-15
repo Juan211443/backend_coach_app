@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'coach_app/api-php',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => 'f58b6fb52fdc28f89a6bc39818ff427c5da78b38',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '29ce7b458ef9536978a9370b2a152c3d80680665',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'coach_app/api-php' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'f58b6fb52fdc28f89a6bc39818ff427c5da78b38',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '29ce7b458ef9536978a9370b2a152c3d80680665',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
