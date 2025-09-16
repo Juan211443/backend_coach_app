@@ -1,4 +1,5 @@
 <?php
+// index.php
 require __DIR__ . '/../src/config.php';
 require __DIR__ . '/../src/db.php';
 

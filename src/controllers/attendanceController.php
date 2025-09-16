@@ -1,12 +1,19 @@
 <?php
+// attendanceController.php
 require __DIR__ . '/../middlewares.php';
 require __DIR__ . '/../utils.php';
+require __DIR__ . '/../validators.php';
 
 function attendance_mark(PDO $pdo){
-  $claims = require_auth();
+  $claims = require_auth_role(['coach','admin']);
 
   $b = body_json();
-  foreach (['session_id','player_id','status'] as $k) if (empty($b[$k])) json_err("Missing $k", 400);
+  must($b, ['session_id','player_id','status']);
+
+  assert_enum($b['status'], ['present','absent','late','excused'], 'INVALID_STATUS');
+
+  if (isset($b['checkin_at'])) assert_datetime($b['checkin_at'], 'checkin_at');
+  if (!is_numeric($b['session_id']) || !is_numeric($b['player_id'])) json_err('INVALID_IDS', 422);
 
   $sql = "
     INSERT INTO attendance (session_id, player_id, status, checkin_at, remarks)

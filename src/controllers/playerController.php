@@ -1,11 +1,14 @@
 <?php
+// playerController.php
 require __DIR__ . '/../middlewares.php';
 require __DIR__ . '/../utils.php';
+require __DIR__ . '/../validators.php';
 
 function players_index(PDO $pdo){
   $q      = $_GET['q']      ?? null;
   $limit  = (int)($_GET['limit']  ?? 20);
   $offset = (int)($_GET['offset'] ?? 0);
+  sanitize_paging($limit, $offset, 100);
 
   $sql = "
     SELECT
@@ -47,11 +50,20 @@ function player_show(PDO $pdo, int $personId){
 }
 
 function players_store(PDO $pdo){
-  $claims = require_auth(); // public
-
+  $claims = require_auth_role(['coach','admin']);
+  
   $b = body_json();
-  foreach (['first_name','last_name','birth_date'] as $k)
-    if (!isset($b[$k])) json_err("Missing $k", 400);
+  must($b, ['first_name','last_name','birth_date']);
+
+  assert_date($b['birth_date'], 'birth_date');
+  assert_enum($b['preferred_foot'] ?? 'Right', ['Left','Right','Both'], 'INVALID_PREFERRED_FOOT');
+
+  assert_int_range($b['jersey_number'] ?? null, 1, 99, 'jersey_number');
+  $yearNow = (int)date('Y');
+  assert_int_range($b['enrollment_year'] ?? null, 1900, $yearNow, 'enrollment_year');
+
+  assert_decimal($b['height_cm'] ?? null, 0, 300, 'height_cm');
+  assert_decimal($b['weight_kg'] ?? null, 0, 500, 'weight_kg');
 
   try {
     $pdo->beginTransaction();
@@ -92,9 +104,17 @@ function players_store(PDO $pdo){
 }
 
 function player_update(PDO $pdo, int $personId){
-  $claims = require_auth();
+  $claims = require_auth_role(['coach','admin']);
 
   $b = body_json();
+  
+  if (array_key_exists('birth_date', $b))     assert_date($b['birth_date'], 'birth_date');
+  if (array_key_exists('preferred_foot',$b))  assert_enum($b['preferred_foot'], ['Left','Right','Both'], 'INVALID_PREFERRED_FOOT');
+  if (array_key_exists('jersey_number',$b))   assert_int_range($b['jersey_number'], 1, 99, 'jersey_number');
+  if (array_key_exists('enrollment_year',$b)) assert_int_range($b['enrollment_year'], 1900, (int)date('Y'), 'enrollment_year');
+  if (array_key_exists('height_cm',$b))       assert_decimal($b['height_cm'], 0, 300, 'height_cm');
+  if (array_key_exists('weight_kg',$b))       assert_decimal($b['weight_kg'], 0, 500, 'weight_kg');
+
   try {
     $pdo->beginTransaction();
 
@@ -127,7 +147,7 @@ function player_update(PDO $pdo, int $personId){
 }
 
 function player_delete(PDO $pdo, int $personId){
-  $claims = require_auth();
+  $claims = require_auth_role(['coach','admin']);
 
   try {
     $pdo->beginTransaction();

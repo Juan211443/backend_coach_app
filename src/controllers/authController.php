@@ -1,17 +1,22 @@
 <?php
+// authController.php
 require __DIR__ . '/../jwt.php';
 require __DIR__ . '/../utils.php';
+require __DIR__ . '/../validators.php';
 
 function register_handler(PDO $pdo){
   $b = body_json();
-  foreach (['email','password'] as $k) if (empty($b[$k])) json_err("Missing $k", 400);
+  must($b, ['email','password']);
+
+  assert_email($b['email']);
+  assert_password($b['password']);
 
   $role = $b['role'] ?? 'player';
-  if (!in_array($role, ['player','coach','admin'])) json_err('Invalid role', 400);
+  assert_enum($role, ['player','coach','admin'], 'INVALID_ROLE');
 
   $st = $pdo->prepare("SELECT user_id FROM user WHERE email=? LIMIT 1");
   $st->execute([$b['email']]);
-  if ($st->fetch()) json_err('Email already in use', 409);
+  if ($st->fetch()) json_err('EMAIL_IN_USE', 409);
 
   $hash = password_hash($b['password'], PASSWORD_BCRYPT);
   $ins  = $pdo->prepare("INSERT INTO user (email, password_hash, role) VALUES (?,?,?)");
@@ -22,12 +27,13 @@ function register_handler(PDO $pdo){
 
 function login_handler(PDO $pdo){
   $b = body_json();
-  foreach (['email','password'] as $k) if (empty($b[$k])) json_err("Missing $k", 400);
+  must($b, ['email','password']);
+  assert_email($b['email']);
 
   $st = $pdo->prepare("SELECT user_id, email, password_hash, role FROM user WHERE email=? AND is_active=1");
   $st->execute([$b['email']]);
   $u = $st->fetch(PDO::FETCH_ASSOC);
-  if (!$u || !password_verify($b['password'], $u['password_hash'])) json_err('Invalid credentials', 401);
+  if (!$u || !password_verify($b['password'], $u['password_hash'])) json_err('INVALID_CREDENTIALS', 401);
 
   $token = jwt_make(['sub'=>(int)$u['user_id'], 'role'=>$u['role']]);
   json_ok(['token'=>$token, 'user'=>['user_id'=>(int)$u['user_id'],'email'=>$u['email'],'role'=>$u['role']]]);

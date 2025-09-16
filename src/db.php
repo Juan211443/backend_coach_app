@@ -1,4 +1,5 @@
 <?php
+// db.php
 $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
   envv('DB_HOST','127.0.0.1'),
   envv('DB_PORT','3306'),
