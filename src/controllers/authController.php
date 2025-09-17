@@ -1,8 +1,8 @@
 <?php
 // authController.php
-require __DIR__ . '/../jwt.php';
-require __DIR__ . '/../utils.php';
-require __DIR__ . '/../validators.php';
+require_once __DIR__ . '/../jwt.php';
+require_once __DIR__ . '/../utils.php';
+require_once __DIR__ . '/../validators.php';
 
 function register_handler(PDO $pdo){
   $b = body_json();
@@ -11,8 +11,7 @@ function register_handler(PDO $pdo){
   assert_email($b['email']);
   assert_password($b['password']);
 
-  $role = $b['role'] ?? 'player';
-  assert_enum($role, ['player','coach','admin'], 'INVALID_ROLE');
+  $role = 'player';
 
   $st = $pdo->prepare("SELECT user_id FROM user WHERE email=? LIMIT 1");
   $st->execute([$b['email']]);

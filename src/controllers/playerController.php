@@ -1,8 +1,8 @@
 <?php
 // playerController.php
-require __DIR__ . '/../middlewares.php';
-require __DIR__ . '/../utils.php';
-require __DIR__ . '/../validators.php';
+require_once __DIR__ . '/../middlewares.php';
+require_once __DIR__ . '/../utils.php';
+require_once __DIR__ . '/../validators.php';
 
 function players_index(PDO $pdo){
   $q      = $_GET['q']      ?? null;
@@ -50,7 +50,7 @@ function player_show(PDO $pdo, int $personId){
 }
 
 function players_store(PDO $pdo){
-  $claims = require_auth_role(['coach','admin']);
+  $claims = require_auth_role(['coach']);
   
   $b = body_json();
   must($b, ['first_name','last_name','birth_date']);
@@ -104,7 +104,7 @@ function players_store(PDO $pdo){
 }
 
 function player_update(PDO $pdo, int $personId){
-  $claims = require_auth_role(['coach','admin']);
+  $claims = require_auth_role(['coach']);
 
   $b = body_json();
   
@@ -147,7 +147,7 @@ function player_update(PDO $pdo, int $personId){
 }
 
 function player_delete(PDO $pdo, int $personId){
-  $claims = require_auth_role(['coach','admin']);
+  $claims = require_auth_role(['coach']);
 
   try {
     $pdo->beginTransaction();

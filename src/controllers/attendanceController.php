@@ -1,11 +1,11 @@
 <?php
 // attendanceController.php
-require __DIR__ . '/../middlewares.php';
-require __DIR__ . '/../utils.php';
-require __DIR__ . '/../validators.php';
+require_once __DIR__ . '/../middlewares.php';
+require_once __DIR__ . '/../utils.php';
+require_once __DIR__ . '/../validators.php';
 
 function attendance_mark(PDO $pdo){
-  $claims = require_auth_role(['coach','admin']);
+  $claims = require_auth_role(['coach']);
 
   $b = body_json();
   must($b, ['session_id','player_id','status']);

@@ -8,7 +8,7 @@ CREATE TABLE user (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(100) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  role ENUM('player','coach','admin') NOT NULL DEFAULT 'player',
+  role ENUM('player','coach') NOT NULL DEFAULT 'player',
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -23,10 +23,11 @@ CREATE TABLE person (
   height_cm DECIMAL(5,2) NULL,
   weight_kg DECIMAL(5,2) NULL,
   phone VARCHAR(20) NULL,
-  profile_photo BLOB NULL,
+  profile_photo MEDIUMBLOB NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_person_user
     FOREIGN KEY (user_id) REFERENCES user(user_id)
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE player_position (
@@ -58,6 +59,7 @@ CREATE TABLE team (
     FOREIGN KEY (category_id) REFERENCES category(id),
   CONSTRAINT fk_team_coach
     FOREIGN KEY (coach_person_id) REFERENCES person(person_id)
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE player (
@@ -73,15 +75,20 @@ CREATE TABLE player (
   current_injuries VARCHAR(200) NULL,
   current_team_id INT NULL,
   CONSTRAINT fk_player_person
-    FOREIGN KEY (person_id) REFERENCES person(person_id),
+    FOREIGN KEY (person_id) REFERENCES person(person_id)
+    ON DELETE CASCADE,
   CONSTRAINT fk_player_position
-    FOREIGN KEY (position_id) REFERENCES player_position(id),
+    FOREIGN KEY (position_id) REFERENCES player_position(id)
+    ON DELETE SET NULL,
   CONSTRAINT fk_player_category
-    FOREIGN KEY (current_category_id) REFERENCES category(id),
+    FOREIGN KEY (current_category_id) REFERENCES category(id)
+    ON DELETE SET NULL,
   CONSTRAINT fk_player_academy
-    FOREIGN KEY (sports_academy_id) REFERENCES sports_academy(id),
+    FOREIGN KEY (sports_academy_id) REFERENCES sports_academy(id)
+    ON DELETE SET NULL,
   CONSTRAINT fk_player_team
-    FOREIGN KEY (current_team_id) REFERENCES team(id),
+    FOREIGN KEY (current_team_id) REFERENCES team(id)
+    ON DELETE SET NULL,
   UNIQUE KEY uq_team_jersey (current_team_id, jersey_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -97,6 +104,7 @@ CREATE TABLE session (
   notes VARCHAR(255) NULL,
   CONSTRAINT fk_session_team
     FOREIGN KEY (team_id) REFERENCES team(id)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE attendance (
@@ -108,9 +116,11 @@ CREATE TABLE attendance (
   remarks VARCHAR(255) NULL,
   UNIQUE KEY uq_session_player (session_id, player_id),
   CONSTRAINT fk_attendance_session
-    FOREIGN KEY (session_id) REFERENCES session(id),
+    FOREIGN KEY (session_id) REFERENCES session(id)
+    ON DELETE CASCADE,
   CONSTRAINT fk_attendance_player
     FOREIGN KEY (player_id) REFERENCES player(person_id)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE player_metric (
@@ -122,4 +132,5 @@ CREATE TABLE player_metric (
   recorded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_metric_player
     FOREIGN KEY (player_id) REFERENCES player(person_id)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

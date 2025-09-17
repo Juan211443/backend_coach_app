@@ -1,4 +1,7 @@
 <?php
+// validators.php
+class TestValidationException extends Exception {}
+
 function must(array $b, array $keys){
   foreach ($keys as $k) if (!isset($b[$k]) || $b[$k] === '') json_err("Missing $k", 400);
 }
@@ -42,7 +45,6 @@ function assert_datetime($value, string $field){
   if (!$d || $d->format('Y-m-d H:i:s') !== $value) json_err("INVALID_DATETIME_$field", 422);
 }
 
-/** sanea limit/offset */
 function sanitize_paging(&$limit, &$offset, int $max=100){
   $limit  = max(1, min((int)$limit, $max));
   $offset = max(0, (int)$offset);
