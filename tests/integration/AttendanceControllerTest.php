@@ -57,6 +57,6 @@ final class AttendanceControllerTest extends TestCase {
     $sum = $GLOBALS['__TEST_RESPONSE__']['data'];
     $this->assertSame(1, $sum['presents']);
     $this->assertSame(1, $sum['total']);
-    $this->assertSame(100, $sum['percent']);
+    $this->assertSame(100, (int)$sum['percent']);
   }
 }

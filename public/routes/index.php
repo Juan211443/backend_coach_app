@@ -1,6 +1,23 @@
 <?php
 // index.php
 require __DIR__ . '/../src/config.php';
+
+$uri    = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+if ($method === 'GET' && $uri === '/health') {
+  require __DIR__ . '/../src/controllers/healthController.php';
+  health_ready();
+}
+if ($method === 'GET' && $uri === '/health/live') {
+  require __DIR__ . '/../src/controllers/healthController.php';
+  health_live();
+}
+if ($method === 'GET' && $uri === '/health/ready') {
+  require __DIR__ . '/../src/controllers/healthController.php';
+  health_ready();
+}
+
 require __DIR__ . '/../src/db.php';
 
 $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';

@@ -1,11 +1,17 @@
 services:
   nginx:
-    image: nginx:stable
+    build:
+      context: ./deploy
+      dockerfile: dockerfile.nginx
     container_name: nginx_proxy
     ports:
       - "127.0.0.1:8081:80"
-      # - "8443:443"
+    depends_on: []
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/health/ready"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
     volumes:
       - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
-    depends_on: []

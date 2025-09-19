@@ -42,7 +42,7 @@ function attendance_monthly(PDO $pdo, int $playerId){
 
   $presents = (int)($row['presents'] ?? 0);
   $total    = (int)($row['total'] ?? 0);
-  $percent  = $total ? round(($presents / $total) * 100) : 0;
+  $percent  = $total ? (int) round(($presents / $total) * 100) : 0;
 
   json_ok(['player_id'=>$playerId,'year'=>$year,'month'=>$month,'presents'=>$presents,'total'=>$total,'percent'=>$percent]);
 }

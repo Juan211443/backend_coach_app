@@ -48,12 +48,16 @@ final class PlayerControllerTest extends TestCase {
   }
 
   public function test_store_requires_coach_role(): void {
-    $pdo = test_pdo();
-    $_SERVER['HTTP_AUTHORIZATION'] = ''; 
-    $GLOBALS['__TEST_BODY__'] = [
-      'first_name'=>'Ana','last_name'=>'Ruiz','birth_date'=>'2011-02-02'
-    ];
+  $pdo = test_pdo();
+  $GLOBALS['__TEST_BODY__'] = ['email'=>'p@p.com','password'=>'secret1234'];
+  register_handler($pdo);
+  $token = jwt_make(['sub'=>1,'role'=>'player']);
+  $_SERVER['HTTP_AUTHORIZATION'] = "Bearer $token";
+  $GLOBALS['__TEST_BODY__'] = [
+    'first_name'=>'Ana','last_name'=>'Ruiz','birth_date'=>'2011-02-02'
+  ];
+    $this->expectException(RuntimeException::class);
+    $this->expectExceptionMessage('FORBIDDEN_ROLE');
     players_store($pdo);
-    $this->assertSame(403, $GLOBALS['__TEST_RESPONSE__']['code'] ?? 401);
   }
 }
