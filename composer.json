@@ -5,6 +5,11 @@
             "CoachApp\\ApiPhp\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+          "Tests\\": "tests/"
+    }
+  },
     "authors": [
         {
             "name": "Juan Camilo",
@@ -21,7 +26,7 @@
         "fakerphp/faker": "^1.24"
     },
     "scripts": {
-        "tets": "./vendor/bin/phpunit",
+        "test": "./vendor/bin/phpunit",
         "test:unit": "./vendor/bin/phpunit --testsuite Unit",
         "test:integration": "./vendor/bin/phpunit --testsuite Integration"
     }

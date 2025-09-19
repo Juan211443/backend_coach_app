@@ -36,12 +36,10 @@ jobs:
           extensions: mbstring, json, pdo, pdo_mysql
           coverage: none
 
-      - name: Cache Composer
+      - name: Cache Composer downloads
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.composer/cache
-            vendor
+          path: ~/.composer/cache
           key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
