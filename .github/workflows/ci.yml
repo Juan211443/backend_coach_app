@@ -46,7 +46,7 @@ jobs:
           restore-keys: composer-${{ runner.os }}-
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Create .env.test
         run: |
@@ -70,9 +70,9 @@ jobs:
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h 127.0.0.1 -uroot -proot_pass --silent; then
-              echo -e "\n✅ MySQL is up!"; exit 0
+              echo -e "MySQL is up!"; exit 0
             fi
-            printf "⏳ Waiting for MySQL... [%2d/30]\r" $i
+            printf "Waiting for MySQL... [%2d/30]\r" $i
             sleep 2
           done
           echo "MySQL did not become ready in time." && exit 1
