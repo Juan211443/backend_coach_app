@@ -3,8 +3,8 @@
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';
-require_once __DIR__ . '/../../src/controllers/playerController.php';
-require_once __DIR__ . '/../../src/controllers/authController.php';
+require_once __DIR__ . '/../../src/controllers/v1/playerController.php';
+require_once __DIR__ . '/../../src/controllers/v1/authController.php';
 
 final class PlayerControllerTest extends TestCase {
 
@@ -42,7 +42,7 @@ final class PlayerControllerTest extends TestCase {
     unset($GLOBALS['__TEST_RESPONSE__'], $GLOBALS['__TEST_BODY__']);
     players_index($pdo);
     $this->assertSame(200, $GLOBALS['__TEST_RESPONSE__']['code']);
-    $list = $GLOBALS['__TEST_RESPONSE__']['data'];
+    $list = $GLOBALS['__TEST_RESPONSE__']['data']['data'];
     $this->assertCount(1, $list);
     $this->assertSame('Pérez', $list[0]['last_name']);
   }

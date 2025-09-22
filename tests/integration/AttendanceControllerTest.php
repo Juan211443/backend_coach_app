@@ -3,9 +3,9 @@
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';
-require_once __DIR__ . '/../../src/controllers/attendanceController.php';
-require_once __DIR__ . '/../../src/controllers/playerController.php';
-require_once __DIR__ . '/../../src/controllers/authController.php';
+require_once __DIR__ . '/../../src/controllers/v1/attendanceController.php';
+require_once __DIR__ . '/../../src/controllers/v1/playerController.php';
+require_once __DIR__ . '/../../src/controllers/v1/authController.php';
 
 final class AttendanceControllerTest extends TestCase {
 

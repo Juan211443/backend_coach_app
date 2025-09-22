@@ -1,14 +1,30 @@
 <?php
 // playerController.php
-require_once __DIR__ . '/../middlewares.php';
-require_once __DIR__ . '/../utils.php';
-require_once __DIR__ . '/../validators.php';
+require_once __DIR__ . '/../../middlewares.php';
+require_once __DIR__ . '/../../utils.php';
+require_once __DIR__ . '/../../validators.php';
 
 function players_index(PDO $pdo){
   $q      = $_GET['q']      ?? null;
   $limit  = (int)($_GET['limit']  ?? 20);
   $offset = (int)($_GET['offset'] ?? 0);
   sanitize_paging($limit, $offset, 100);
+
+  $countSql = "
+    SELECT COUNT(*)
+    FROM player pl
+    JOIN person p ON p.person_id = pl.person_id
+    WHERE 1=1
+  ";
+  $countParams = [];
+  if ($q) {
+    $countSql    .= " AND (p.first_name LIKE ? OR p.last_name LIKE ?)";
+    $countParams[] = "%$q%";
+    $countParams[] = "%$q%";
+  }
+  $countStmt = $pdo->prepare($countSql);
+  $countStmt->execute($countParams);
+  $total = (int)$countStmt->fetchColumn();
 
   $sql = "
     SELECT
@@ -32,7 +48,15 @@ function players_index(PDO $pdo){
   $params[] = $limit; $params[] = $offset;
 
   $st = $pdo->prepare($sql); $st->execute($params);
-  json_ok($st->fetchAll(PDO::FETCH_ASSOC));
+  $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+  json_ok([
+    'data' => $rows,
+    'meta' => [
+      'total'  => $total,
+      'limit'  => $limit,
+      'offset' => $offset,
+    ],
+  ]);
 }
 
 function player_show(PDO $pdo, int $personId){

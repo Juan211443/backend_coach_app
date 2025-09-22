@@ -1,8 +1,8 @@
 <?php
 // authController.php
-require_once __DIR__ . '/../jwt.php';
-require_once __DIR__ . '/../utils.php';
-require_once __DIR__ . '/../validators.php';
+require_once __DIR__ . '/../../jwt.php';
+require_once __DIR__ . '/../../utils.php';
+require_once __DIR__ . '/../../validators.php';
 
 function register_handler(PDO $pdo){
   $b = body_json();

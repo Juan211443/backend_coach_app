@@ -4,7 +4,7 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';
 require_once __DIR__ . '/../../src/validators.php';
-require_once __DIR__ . '/../../src/controllers/authController.php';
+require_once __DIR__ . '/../../src/controllers/v1/authController.php';
 
 final class AuthTest extends TestCase {
 

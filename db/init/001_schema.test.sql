@@ -1,3 +1,9 @@
+CREATE DATABASE IF NOT EXISTS coach_app_test
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_general_ci;
+USE coach_app_test;
+SET NAMES utf8mb4;
+
 CREATE TABLE user (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(100) NOT NULL UNIQUE,

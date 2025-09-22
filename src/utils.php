@@ -1,6 +1,5 @@
 <?php
 // utils.php
-// src/utils.php
 if (!function_exists('json_ok')) {
   function json_ok($data, int $code=200){ 
     if (envv('APP_ENV') === 'test') {

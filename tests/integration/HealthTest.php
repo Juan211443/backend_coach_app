@@ -2,7 +2,7 @@
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';
-require_once __DIR__ . '/../../src/controllers/healthController.php';
+require_once __DIR__ . '/../../src/controllers/v1/healthController.php';
 
 final class HealthTest extends TestCase {
   public function test_live(): void {
