@@ -2,8 +2,22 @@
 // validators.php
 class TestValidationException extends Exception {}
 
-function must(array $b, array $keys){
-  foreach ($keys as $k) if (!isset($b[$k]) || $b[$k] === '') json_err("Missing $k", 400);
+function must(array $b, array $required, int $code = 400): void {
+  $missing = [];
+
+  foreach ($required as $k) {
+    if (!array_key_exists($k, $b) || $b[$k] === '' || $b[$k] === null) {
+      $missing[] = $k;
+    }
+  }
+
+  if ($missing) {
+    $msg = count($missing) === 1
+      ? "Missing {$missing[0]}"
+      : 'Missing: ' . implode(', ', $missing);
+
+    json_err($msg, $code);
+  }
 }
 
 function assert_email(string $email){

@@ -5,57 +5,69 @@ require_once __DIR__ . '/../../utils.php';
 require_once __DIR__ . '/../../validators.php';
 
 function players_index(PDO $pdo){
-  $q      = $_GET['q']      ?? null;
   $limit  = (int)($_GET['limit']  ?? 20);
   $offset = (int)($_GET['offset'] ?? 0);
   sanitize_paging($limit, $offset, 100);
 
-  $countSql = "
-    SELECT COUNT(*)
-    FROM player pl
-    JOIN person p ON p.person_id = pl.person_id
-    WHERE 1=1
-  ";
-  $countParams = [];
-  if ($q) {
-    $countSql    .= " AND (p.first_name LIKE ? OR p.last_name LIKE ?)";
-    $countParams[] = "%$q%";
-    $countParams[] = "%$q%";
-  }
-  $countStmt = $pdo->prepare($countSql);
-  $countStmt->execute($countParams);
-  $total = (int)$countStmt->fetchColumn();
+  $categoryTxt = trim($_GET['category'] ?? '');
+  $teamTxt     = trim($_GET['team'] ?? '');
 
-  $sql = "
-    SELECT
-      p.person_id, p.first_name, p.last_name, p.birth_date,
-      p.preferred_foot, p.height_cm, p.weight_kg, p.phone, p.profile_photo,
-      pl.jersey_number, pl.position_id, pos.code AS position_code, pos.name AS position_name,
-      pl.current_category_id, c.name AS category_name,
-      pl.sports_academy_id, sa.name AS academy_name,
-      pl.enrollment_year, pl.health_status, pl.current_injuries,
-      pl.current_team_id, t.name AS team_name
+  $from = "
     FROM player pl
     JOIN person p ON p.person_id = pl.person_id
     LEFT JOIN player_position pos ON pos.id = pl.position_id
     LEFT JOIN category c ON c.id = pl.current_category_id
     LEFT JOIN sports_academy sa ON sa.id = pl.sports_academy_id
     LEFT JOIN team t ON t.id = pl.current_team_id
-    WHERE 1=1";
-  $params = [];
-  if ($q) { $sql .= " AND (p.first_name LIKE ? OR p.last_name LIKE ?)"; $params[]="%$q%"; $params[]="%$q%"; }
-  $sql .= " ORDER BY p.last_name, p.first_name LIMIT ? OFFSET ?";
-  $params[] = $limit; $params[] = $offset;
+    WHERE 1=1
+  ";
 
-  $st = $pdo->prepare($sql); $st->execute($params);
+  $where  = '';
+  $params = [];
+
+  if ($categoryTxt !== '') {
+    if (ctype_digit($categoryTxt)) {
+      $where   .= " AND (c.year = ? OR CAST(c.year AS CHAR) LIKE ? OR c.name LIKE ?)";
+      $params[] = (int)$categoryTxt;
+      $params[] = "%$categoryTxt%";
+      $params[] = "%$categoryTxt%";
+    } else {
+      $where   .= " AND (c.name LIKE ? OR CAST(c.year AS CHAR) LIKE ?)";
+      $params[] = "%$categoryTxt%";
+      $params[] = "%$categoryTxt%";
+    }
+  }
+
+  if ($teamTxt !== '') {
+    $where   .= " AND (t.name LIKE ?)";
+    $params[] = "%$teamTxt%";
+  }
+
+  $countSql = "SELECT COUNT(*) $from $where";
+  $st = $pdo->prepare($countSql);
+  $st->execute($params);
+  $total = (int)$st->fetchColumn();
+
+  $select = "
+    SELECT
+      p.person_id, p.first_name, p.last_name,
+      pl.jersey_number, pl.position_id, pos.code AS position_code, pos.name AS position_name,
+      pl.current_category_id, c.name AS category_name, c.year AS category_year,
+      pl.current_team_id, t.name AS team_name
+    $from
+    $where
+    ORDER BY c.year DESC, t.name ASC, p.last_name, p.first_name
+    LIMIT ? OFFSET ?
+  ";
+  $selParams = array_merge($params, [$limit, $offset]);
+
+  $st = $pdo->prepare($select);
+  $st->execute($selParams);
   $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
   json_ok([
     'data' => $rows,
-    'meta' => [
-      'total'  => $total,
-      'limit'  => $limit,
-      'offset' => $offset,
-    ],
+    'meta' => ['total'=>$total, 'limit'=>$limit, 'offset'=>$offset],
   ]);
 }
 

@@ -18,10 +18,29 @@ if (!function_exists('json_err')) {
   }
 }
 if (!function_exists('body_json')) {
-  function body_json(){ 
+  function body_json(): array {
     if (envv('APP_ENV') === 'test' && isset($GLOBALS['__TEST_BODY__'])) {
-      return $GLOBALS['__TEST_BODY__'];
+      return (array)$GLOBALS['__TEST_BODY__'];
     }
-    return json_decode(file_get_contents('php://input'), true) ?? []; 
+
+    static $cache = null;
+    if ($cache !== null) return $cache;
+
+    $raw = file_get_contents('php://input');
+
+    if ($raw === '' || $raw === null) {
+      json_err('EMPTY_BODY', 400);
+    }
+
+    $data = json_decode($raw, true);
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+      json_err('INVALID_JSON', 400);
+    }
+
+    if (!is_array($data)) {
+      json_err('INVALID_JSON', 400);
+    }
+
+    return $cache = $data;
   }
 }
