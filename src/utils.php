@@ -17,6 +17,20 @@ if (!function_exists('json_err')) {
     http_response_code($code); echo json_encode(['error'=>$msg]); exit;
   }
 }
+if (!function_exists('envv')) {
+  function envv(string $key, $default=null) {
+    $v = getenv($key);
+    return $v === false ? $default : $v;
+  }
+}
+if (!function_exists('move_uploaded_file_safe')) {
+  function move_uploaded_file_safe(string $tmp, string $dest): bool {
+    if (envv('APP_ENV') === 'test') {
+      return @rename($tmp, $dest);
+    }
+    return move_uploaded_file($tmp, $dest);
+  }
+}
 if (!function_exists('body_json')) {
   function body_json(): array {
     if (envv('APP_ENV') === 'test' && isset($GLOBALS['__TEST_BODY__'])) {

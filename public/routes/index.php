@@ -46,6 +46,10 @@ if ($uri === '/api/v1/players' && $method === 'POST') {
   require __DIR__ . '/../../src/controllers/v1/playerController.php'; 
   players_store($pdo); exit;
 }
+if ($uri === '/api/v1/uploads/profile-photo' && $method === 'POST') {
+  require __DIR__ . '/../../src/controllers/v1/uploadController.php';
+  upload_profile_photo($pdo); exit;
+}
 if (preg_match('#^/api/v1/players/(\d+)$#', $uri, $m)) {
   require __DIR__ . '/../../src/controllers/v1/playerController.php';
   $id = (int)$m[1];

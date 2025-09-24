@@ -60,3 +60,24 @@ function test_reset_db(): void {
 if (!isset($_SERVER['REQUEST_METHOD'])) {
   $_SERVER['REQUEST_METHOD'] = 'GET';
 }
+
+putenv('APP_ENV=test');
+putenv('APP_BASE_URL=http://localhost:8000');
+
+function seed_academy(PDO $pdo, string $name = 'Academia Demo'): int {
+  $st = $pdo->prepare("INSERT INTO sports_academy(name) VALUES (?)");
+  $st->execute([$name]);
+  return (int)$pdo->lastInsertId();
+}
+
+function seed_category(PDO $pdo, string $name, ?int $year): int {
+  $st = $pdo->prepare("INSERT INTO category(name,year) VALUES (?,?)");
+  $st->execute([$name, $year]);
+  return (int)$pdo->lastInsertId();
+}
+
+function seed_team(PDO $pdo, int $academyId, string $name, int $categoryId): int {
+  $st = $pdo->prepare("INSERT INTO team(sports_academy_id,name,category_id) VALUES (?,?,?)");
+  $st->execute([$academyId, $name, $categoryId]);
+  return (int)$pdo->lastInsertId();
+}

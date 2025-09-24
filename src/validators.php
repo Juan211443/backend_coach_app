@@ -20,6 +20,35 @@ function must(array $b, array $required, int $code = 400): void {
   }
 }
 
+function assert_uploaded_image(array $file, int $maxBytes = 5242880): array {
+  if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+    json_err('UPLOAD_FAILED', 400);
+  }
+  if ($file['size'] > $maxBytes) json_err('IMAGE_TOO_LARGE_MAX_5MB', 413);
+
+  $mime = null;
+  if (function_exists('finfo_open')) {
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    if ($finfo) {
+      $mime = finfo_file($finfo, $file['tmp_name']) ?: null;
+      finfo_close($finfo);
+    }
+  }
+
+  if (!$mime || $mime === 'application/octet-stream') {
+    $head = file_get_contents($file['tmp_name'], false, null, 0, 64) ?: '';
+    if (strncmp($head, "\x89PNG\r\n\x1a\n", 8) === 0)            $mime = 'image/png';
+    elseif (strncmp($head, "\xFF\xD8\xFF", 3) === 0)               $mime = 'image/jpeg';
+    elseif (substr($head, 0, 4) === "RIFF" && strpos($head, "WEBP") !== false)
+      $mime = 'image/webp';
+  }
+
+  $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
+  if (!isset($allowed[$mime])) json_err('UNSUPPORTED_IMAGE_TYPE', 422);
+
+  return ['mime'=>$mime, 'ext'=>$allowed[$mime]];
+}
+
 function assert_email(string $email){
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) json_err('INVALID_EMAIL', 422);
 }

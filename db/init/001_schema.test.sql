@@ -23,7 +23,7 @@ CREATE TABLE person (
   height_cm DECIMAL(5,2) NULL,
   weight_kg DECIMAL(5,2) NULL,
   phone VARCHAR(20) NULL,
-  profile_photo MEDIUMBLOB NULL,
+  profile_photo_url VARCHAR(512) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_person_user
     FOREIGN KEY (user_id) REFERENCES user(user_id)

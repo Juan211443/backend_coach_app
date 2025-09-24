@@ -105,13 +105,13 @@ function players_store(PDO $pdo){
     $pdo->beginTransaction();
 
     $p = $pdo->prepare("
-      INSERT INTO person (first_name,last_name,birth_date,preferred_foot,height_cm,weight_kg,phone,profile_photo)
+      INSERT INTO person (first_name,last_name,birth_date,preferred_foot,height_cm,weight_kg,phone,profile_photo_url)
       VALUES (?,?,?,?,?,?,?,?)");
     $p->execute([
       $b['first_name'],$b['last_name'],$b['birth_date'],
       $b['preferred_foot'] ?? 'Right',
       $b['height_cm'] ?? null, $b['weight_kg'] ?? null,
-      $b['phone'] ?? null, $b['profile_photo'] ?? null
+      $b['phone'] ?? null, $b['profile_photo_url'] ?? null
     ]);
     $personId = (int)$pdo->lastInsertId();
 
@@ -155,7 +155,7 @@ function player_update(PDO $pdo, int $personId){
     $pdo->beginTransaction();
 
     $pCols = $pVals = [];
-    foreach (['first_name','last_name','birth_date','preferred_foot','height_cm','weight_kg','phone','profile_photo'] as $f) {
+    foreach (['first_name','last_name','birth_date','preferred_foot','height_cm','weight_kg','phone','profile_photo_url'] as $f) {
       if (array_key_exists($f, $b)) { $pCols[]="$f=?"; $pVals[]=$b[$f]; }
     }
     if ($pCols) {

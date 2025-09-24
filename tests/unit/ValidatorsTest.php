@@ -32,4 +32,15 @@ final class ValidatorsTest extends TestCase {
     $this->expectExceptionMessage('INVALID_ENUM');
     assert_enum('admin', ['player','coach']);
   }
+
+  public function test_assert_uploaded_image_png_ok(): void {
+    $pngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/fe2yWwAAAAASUVORK5CYII=';
+    $bytes = base64_decode($pngBase64, true);
+    $tmp = tempnam(sys_get_temp_dir(), 'png');
+    file_put_contents($tmp, $bytes);
+    $file = ['tmp_name'=>$tmp, 'size'=>filesize($tmp), 'error'=>UPLOAD_ERR_OK];
+    $meta = assert_uploaded_image($file);
+    $this->assertSame('image/png', $meta['mime']);
+    unlink($tmp);
+  }
 }

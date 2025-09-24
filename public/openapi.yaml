@@ -67,47 +67,42 @@ paths:
         - in: query
           name: category
           description: Category name or category year. 
-          schema:
-            type: string
+          schema: { type: string }
           examples:
-            porAnio:
+            byYear:
               summary: Exact year
               value: "2014"
-            porNombre:
+            byName:
               summary: Category name
               value: "Sub-15"
         - in: query
           name: team
-          schema:
-            type: string
-            value: "Leones"
+          schema: { type: string }
+          example: "Leones"
         - in: query
           name: limit
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
         - in: query
           name: offset
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-      responses:
-        '200':
-          description: List
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Player'
-                  meta:
-                    $ref: '#/components/schemas/PagingMeta'
+          schema: {
+            type: integer, minimum: 0, default: 0 }
+    responses:
+      '200':
+        description: List
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Player'
+                meta:
+                  $ref: '#/components/schemas/PagingMeta'
+            examples:
+              byCategory:
+                summary: Filtered by category 2014
                 value:
                   data:
                     - person_id: 12
@@ -145,6 +140,48 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/ForbiddenRole'
+
+  /uploads/profile-photo:
+    post:
+      tags: [Players]
+      summary: Upload a profile photo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+                  filename: { type: string }
+                  mime: { type: string }
+                  size: { type: integer }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenRole'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /attendance:
     post:
@@ -226,6 +263,41 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request (missing or invalid parameters)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            fileRequired: { value: { error: "FILE_REQUIRED" } }
+            uploadFailed: { value: { error: "UPLOAD_FAILED" } }
+    PayloadTooLarge:
+      description: Payload too large
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            tooLarge: { value: { error: "IMAGE_TOO_LARGE_MAX_5MB" } }
+
+    UnprocessableEntity:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unsupportedType: { value: { error: "UNSUPPORTED_IMAGE_TYPE" } }
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            moveFailed: { value: { error: "MOVE_FAILED" } }
 
   schemas:
     Error:
@@ -337,6 +409,9 @@ components:
         academy_name:
           type: string
           nullable: true
+        profile_photo_url:
+          type: string
+          nullable: true
 
     PlayerCreate:
       type: object
@@ -356,6 +431,9 @@ components:
           type: string
           enum: [Left, Right, Both]
           default: Right
+        profile_photo_url:
+          type: string
+          nullable: true
 
     AttendanceMark:
       type: object
