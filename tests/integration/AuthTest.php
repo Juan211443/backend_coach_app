@@ -1,5 +1,5 @@
 <?php
-// AuthTest.php
+// authTest.php
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';

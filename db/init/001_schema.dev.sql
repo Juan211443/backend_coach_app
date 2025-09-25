@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS coach_app
+CREATE DATABASE IF NOT EXISTS coach_app_dev
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_general_ci;
-USE coach_app;
+USE coach_app_dev;
 SET NAMES utf8mb4;
 
 CREATE TABLE user (

@@ -21,11 +21,27 @@
     "require-dev": {
         "phpunit/phpunit": "^11.5",
         "guzzlehttp/guzzle": "^7.10",
-        "fakerphp/faker": "^1.24"
+        "fakerphp/faker": "^1.24",
+        "robmorgan/phinx": "^0.16.10"
     },
     "scripts": {
-        "test": "./vendor/bin/phpunit",
-        "test:unit": "./vendor/bin/phpunit --testsuite unit",
-        "test:integration": "./vendor/bin/phpunit --testsuite integration"
+        "db:migrate:dev":  "APP_ENV=dev  vendor/bin/phinx migrate -e dev",
+        "db:seed:dev":     "APP_ENV=dev  vendor/bin/phinx seed:run -e dev",
+        "db:rollback:dev": "APP_ENV=dev  vendor/bin/phinx rollback -e dev -t 0",
+
+        "db:migrate:test": "APP_ENV=test vendor/bin/phinx migrate -e test",
+        "db:seed:test":    "APP_ENV=test vendor/bin/phinx seed:run -e test",
+        "db:rollback:test":"APP_ENV=test vendor/bin/phinx rollback -e test -t 0",
+
+        "db:migrate:prod": "APP_ENV=prod vendor/bin/phinx migrate -e prod",
+
+        "db:refresh:dev": [
+          "@db:rollback:dev",
+          "@db:migrate:dev",
+          "@db:seed:dev"
+        ],
+
+        "test:integration": "vendor/bin/phinx rollback -e test -t 0 || true && vendor/bin/phinx migrate -e test && php vendor/bin/phpunit --testsuite integration",
+        "test:unit": "./vendor/bin/phpunit --testsuite unit"
     }
 }

@@ -1,5 +1,5 @@
 <?php
-// AttendanceControllerTest.php
+// attendanceControllerTest.php
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';
@@ -24,15 +24,22 @@ final class AttendanceControllerTest extends TestCase {
   }
 
   private function seedBasicData(PDO $pdo): array {
-    $pdo->exec("INSERT INTO sports_academy(name) VALUES('Academia X');");
-    $pdo->exec("INSERT INTO category(name,year) VALUES('Sub-14', 2011);");
-    $pdo->exec("INSERT INTO team(sports_academy_id,name,category_id) VALUES(1,'Equipo A',1);");
-    $pdo->exec("INSERT INTO session(team_id,type,date) VALUES(1,'training','2025-09-01');");
+    seed_player_positions($pdo);
 
-    $pdo->exec("INSERT INTO person(first_name,last_name,birth_date) VALUES('Leo','García','2011-03-03');");
-    $pdo->exec("INSERT INTO player(person_id) VALUES(1);");
+    $academyId = seed_academy($pdo, 'Academia X');
+    $catId     = seed_category($pdo, 'Sub-14', 2011);
+    $teamId    = seed_team($pdo, $academyId, 'Equipo A', $catId);
 
-    return ['session_id'=>1,'player_id'=>1];
+    $sessionId = seed_session($pdo, $teamId, 'training', '2025-09-01');
+
+    $personId  = seed_person($pdo, [
+      'first_name' => 'Leo',
+      'last_name'  => 'García',
+      'birth_date' => '2011-03-03',
+    ]);
+    seed_player($pdo, $personId);
+
+    return ['session_id' => $sessionId, 'player_id' => $personId];
   }
 
   public function test_mark_and_summary(): void {

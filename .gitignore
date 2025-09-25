@@ -1,6 +1,7 @@
 /vendor/
 .env
 .env.test
+#.env.prod
 .phpunit.cache/
 .phpunit.result.cache
 /coverage/
@@ -9,3 +10,5 @@
 *.swp
 .DS_Store
 Thumbs.db
+/public/uploads/profiles/*
+!/public/uploads/profiles/.gitkeep

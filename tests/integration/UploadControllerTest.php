@@ -1,5 +1,5 @@
 <?php
-// tests/integration/UploadControllerTest.php
+// uploadControllerTest.php
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../tests/bootstrap.php';

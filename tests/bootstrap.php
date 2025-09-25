@@ -8,6 +8,7 @@ $dotenv->safeLoad();
 require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/utils.php';
 require_once __DIR__ . '/../src/jwt.php';
+require_once __DIR__ . '/seed_helpers.php';
 
 function test_pdo(): PDO {
   static $pdo = null;
@@ -56,28 +57,9 @@ function test_reset_db(): void {
   $pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
 }
 
-
 if (!isset($_SERVER['REQUEST_METHOD'])) {
   $_SERVER['REQUEST_METHOD'] = 'GET';
 }
 
 putenv('APP_ENV=test');
 putenv('APP_BASE_URL=http://localhost:8000');
-
-function seed_academy(PDO $pdo, string $name = 'Academia Demo'): int {
-  $st = $pdo->prepare("INSERT INTO sports_academy(name) VALUES (?)");
-  $st->execute([$name]);
-  return (int)$pdo->lastInsertId();
-}
-
-function seed_category(PDO $pdo, string $name, ?int $year): int {
-  $st = $pdo->prepare("INSERT INTO category(name,year) VALUES (?,?)");
-  $st->execute([$name, $year]);
-  return (int)$pdo->lastInsertId();
-}
-
-function seed_team(PDO $pdo, int $academyId, string $name, int $categoryId): int {
-  $st = $pdo->prepare("INSERT INTO team(sports_academy_id,name,category_id) VALUES (?,?,?)");
-  $st->execute([$academyId, $name, $categoryId]);
-  return (int)$pdo->lastInsertId();
-}

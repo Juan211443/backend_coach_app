@@ -15,7 +15,7 @@ function health_ready(?PDO $pdo = null): void {
         'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
         envv('DB_HOST', '127.0.0.1'),
         envv('DB_PORT', '3306'),
-        envv('DB_NAME', 'coach_app')
+        envv('DB_NAME', 'coach_app_dev')
       );
       $pdo = new PDO($dsn, envv('DB_USER','root'), envv('DB_PASS',''), [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
