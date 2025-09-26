@@ -41,7 +41,8 @@
           "@db:seed:dev"
         ],
 
-        "test:integration": "vendor/bin/phinx rollback -e test -t 0 || true && vendor/bin/phinx migrate -e test && php vendor/bin/phpunit --testsuite integration",
+        "db:reset:test": "php tools/reset_test_db.php",
+        "test:integration": "composer db:reset:test && vendor/bin/phinx migrate -e test && php vendor/bin/phpunit --testsuite integration",
         "test:unit": "./vendor/bin/phpunit --testsuite unit"
     }
 }
