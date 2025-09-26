@@ -25,15 +25,15 @@
         "robmorgan/phinx": "^0.16.10"
     },
     "scripts": {
-        "db:migrate:dev":  "APP_ENV=dev  vendor/bin/phinx migrate -e dev",
-        "db:seed:dev":     "APP_ENV=dev  vendor/bin/phinx seed:run -e dev",
-        "db:rollback:dev": "APP_ENV=dev  vendor/bin/phinx rollback -e dev -t 0",
+        "db:migrate:dev":  "vendor/bin/phinx migrate -e dev",
+        "db:seed:dev":     "vendor/bin/phinx seed:run -e dev",
+        "db:rollback:dev": "vendor/bin/phinx rollback -e dev -t 0",
 
-        "db:migrate:test": "APP_ENV=test vendor/bin/phinx migrate -e test",
-        "db:seed:test":    "APP_ENV=test vendor/bin/phinx seed:run -e test",
-        "db:rollback:test":"APP_ENV=test vendor/bin/phinx rollback -e test -t 0",
+        "db:migrate:test": "vendor/bin/phinx migrate -e test",
+        "db:seed:test":    "vendor/bin/phinx seed:run -e test",
+        "db:rollback:test":"vendor/bin/phinx rollback -e test -t 0",
 
-        "db:migrate:prod": "APP_ENV=prod vendor/bin/phinx migrate -e prod",
+        "db:migrate:prod": "vendor/bin/phinx migrate -e prod",
 
         "db:refresh:dev": [
           "@db:rollback:dev",

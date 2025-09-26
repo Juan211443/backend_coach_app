@@ -2,7 +2,7 @@
 // phinx.php
 require __DIR__ . '/vendor/autoload.php';
 
-$argv = $_SERVER['argv'] ?? [];
+$argv  = $_SERVER['argv'] ?? [];
 $cliEnv = null;
 for ($i = 0; $i < count($argv); $i++) {
   if (($argv[$i] === '-e' || $argv[$i] === '--environment') && isset($argv[$i+1])) {
@@ -12,7 +12,11 @@ for ($i = 0; $i < count($argv); $i++) {
 }
 
 $env = $cliEnv ?: (getenv('APP_ENV') ?: 'dev');
-$envFile = $env === 'prod' ? '.env.prod' : ($env === 'test' ? '.env.test' : '.env.dev');
+$envFile = match ($env) {
+  'prod' => '.env.prod',
+  'test' => '.env.test',
+  default => '.env.dev',
+};
 Dotenv\Dotenv::createImmutable(__DIR__, $envFile)->safeLoad();
 
 return [
@@ -23,10 +27,11 @@ return [
   'environments' => [
     'default_migration_table' => 'phinxlog',
     'default_environment'     => $env,
+
     'dev' => [
       'adapter' => 'mysql',
       'host'    => $_ENV['DB_HOST'] ?? '127.0.0.1',
-      'name'    => $_ENV['DB_NAME'] ?? 'coach_app_dev',
+      'name'    => 'coach_app_dev',
       'user'    => $_ENV['DB_USER'] ?? 'root',
       'pass'    => $_ENV['DB_PASS'] ?? '',
       'port'    => (int)($_ENV['DB_PORT'] ?? 3306),
@@ -36,7 +41,7 @@ return [
     'test' => [
       'adapter' => 'mysql',
       'host'    => $_ENV['DB_HOST'] ?? '127.0.0.1',
-      'name'    => $_ENV['DB_NAME'] ?? 'coach_app_test',
+      'name'    => 'coach_app_test',
       'user'    => $_ENV['DB_USER'] ?? 'root',
       'pass'    => $_ENV['DB_PASS'] ?? '',
       'port'    => (int)($_ENV['DB_PORT'] ?? 3306),
@@ -46,7 +51,7 @@ return [
     'prod' => [
       'adapter' => 'mysql',
       'host'    => $_ENV['DB_HOST'] ?? '127.0.0.1',
-      'name'    => $_ENV['DB_NAME'] ?? 'coach_app_prod',
+      'name'    => 'coach_app_prod',
       'user'    => $_ENV['DB_USER'] ?? 'root',
       'pass'    => $_ENV['DB_PASS'] ?? '',
       'port'    => (int)($_ENV['DB_PORT'] ?? 3306),
