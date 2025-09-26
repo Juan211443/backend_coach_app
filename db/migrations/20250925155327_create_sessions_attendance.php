@@ -9,7 +9,7 @@ final class CreateSessionsAttendance extends AbstractMigration
     public function change(): void
     {
         $this->table('session')
-            ->addColumn('team_id', 'integer')
+            ->addColumn('team_id', 'integer', ['signed' => false])
             ->addColumn('type', 'enum', ['values' => ['training','match']])
             ->addColumn('date', 'date')
             ->addColumn('starts_at', 'time', ['null' => true])
@@ -21,8 +21,8 @@ final class CreateSessionsAttendance extends AbstractMigration
             ->create();
 
         $this->table('attendance')
-            ->addColumn('session_id', 'integer')
-            ->addColumn('player_id', 'integer')
+            ->addColumn('session_id', 'integer', ['signed' => false])
+            ->addColumn('player_id', 'integer', ['signed' => false])
             ->addColumn('status', 'enum', ['values' => ['present','absent','late','excused']])
             ->addColumn('checkin_at', 'datetime', ['null' => true])
             ->addColumn('remarks', 'string', ['limit' => 255, 'null' => true])

@@ -9,7 +9,7 @@ final class CreatePlayerMetrics extends AbstractMigration
     public function change(): void
     {
         $this->table('player_metric')
-            ->addColumn('player_id', 'integer')
+            ->addColumn('player_id', 'integer', ['signed' => false])
             ->addColumn('metric', 'enum', [
                 'values' => ['weight','height','bmi','speed','shots_accuracy','effective_touches']
             ])

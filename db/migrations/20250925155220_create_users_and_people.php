@@ -18,7 +18,7 @@ final class CreateUsersAndPeople extends AbstractMigration
             ->create();
 
         $this->table('person', ['id' => 'person_id'])
-            ->addColumn('user_id', 'integer', ['null' => true])
+            ->addColumn('user_id', 'integer', ['null' => true, 'signed' => false])
             ->addColumn('first_name', 'string', ['limit' => 80])
             ->addColumn('last_name',  'string', ['limit' => 80])
             ->addColumn('birth_date', 'date')

@@ -76,7 +76,11 @@ jobs:
           echo "MySQL did not become ready in time." && exit 1
 
       - name: Run unit tests
+        env:
+          APP_ENV: test
         run: composer test:unit
 
       - name: Run integration tests
+        env:
+          APP_ENV: test
         run: composer test:integration
