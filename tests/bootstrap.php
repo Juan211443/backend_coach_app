@@ -50,7 +50,7 @@ function test_reset_db(): void {
   $schema = file_get_contents(__DIR__ . '/../db/init/001_schema.test.sql');
   $pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
   foreach (['attendance','player_metric','session','player','team','category',
-            'sports_academy','player_position','person','user'] as $t) {
+            'sports_academy','player_position','person','user','refresh_tokens'] as $t) {
     $pdo->exec("DROP TABLE IF EXISTS `$t`;");
   }
   $pdo->exec($schema);

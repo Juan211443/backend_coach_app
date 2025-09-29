@@ -58,3 +58,8 @@ if (!function_exists('body_json')) {
     return $cache = $data;
   }
 }
+if (!function_exists('base64url')) {
+  function base64url(string $bin): string {
+    return rtrim(strtr(base64_encode($bin), '+/', '-_'), '=');
+  }
+}

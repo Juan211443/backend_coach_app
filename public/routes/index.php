@@ -65,5 +65,18 @@ if (preg_match('#^/api/v1/attendance/summary/(\d+)$#', $uri, $m) && $method === 
   require __DIR__ . '/../../src/controllers/v1/attendanceController.php';
   attendance_monthly($pdo, (int)$m[1]); exit;
 }
+
+if ($uri === '/api/v1/token/refresh' && $method === 'POST') {
+  require __DIR__ . '/../../src/controllers/v1/tokenController.php';
+  refresh_handler($pdo); exit;
+}
+if ($uri === '/api/v1/auth/logout' && $method === 'POST') {
+  require __DIR__ . '/../../src/controllers/v1/authController.php';
+  logout_handler($pdo); exit;
+}
+if ($uri === '/api/v1/auth/logout-all' && $method === 'POST') {
+  require __DIR__ . '/../../src/controllers/v1/authController.php';
+  logout_all_handler($pdo); exit;
+}
 http_response_code(404);
 echo json_encode(['error' => 'Not found', 'path' => $uri]);

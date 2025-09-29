@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS coach_app_dev
 USE coach_app_dev;
 SET NAMES utf8mb4;
 
-CREATE TABLE user (
+CREATE TABLE IF NOT EXISTS user (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(100) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE user (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE person (
+CREATE TABLE IF NOT EXISTS person (
   person_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NULL,
   first_name VARCHAR(80) NOT NULL,
@@ -30,24 +30,24 @@ CREATE TABLE person (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE player_position (
+CREATE TABLE IF NOT EXISTS player_position (
   id TINYINT PRIMARY KEY,
   code VARCHAR(5) UNIQUE,
   name VARCHAR(40) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE sports_academy (
+CREATE TABLE IF NOT EXISTS sports_academy (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(120) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE category (
+CREATE TABLE IF NOT EXISTS category (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(40) NOT NULL,
   year SMALLINT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE team (
+CREATE TABLE IF NOT EXISTS team (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sports_academy_id INT NOT NULL,
   name VARCHAR(80) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE team (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE player (
+CREATE TABLE IF NOT EXISTS player (
   person_id INT PRIMARY KEY,
   jersey_number TINYINT NULL
     CHECK (jersey_number BETWEEN 1 AND 99),
@@ -92,7 +92,7 @@ CREATE TABLE player (
   UNIQUE KEY uq_team_jersey (current_team_id, jersey_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE session (
+CREATE TABLE IF NOT EXISTS session (
   id INT AUTO_INCREMENT PRIMARY KEY,
   team_id INT NOT NULL,
   type ENUM('training','match') NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE session (
     ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE attendance (
+CREATE TABLE IF NOT EXISTS attendance (
   id INT AUTO_INCREMENT PRIMARY KEY,
   session_id INT NOT NULL,
   player_id INT NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE attendance (
     ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE player_metric (
+CREATE TABLE IF NOT EXISTS player_metric (
   id INT AUTO_INCREMENT PRIMARY KEY,
   player_id INT NOT NULL,
   metric ENUM('weight','height','bmi','speed','shots_accuracy','effective_touches') NOT NULL,
@@ -133,4 +133,17 @@ CREATE TABLE player_metric (
   CONSTRAINT fk_metric_player
     FOREIGN KEY (player_id) REFERENCES player(person_id)
     ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token_hash VARCHAR(255) NOT NULL,
+  lookup_hash CHAR(43) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  revoked_at DATETIME NULL,
+  CONSTRAINT fk_rt_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+    UNIQUE KEY uq_lookup_hash (lookup_hash),
+    INDEX ix_user_exp (user_id, expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

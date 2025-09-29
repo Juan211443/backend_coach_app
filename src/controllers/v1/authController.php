@@ -3,6 +3,9 @@
 require_once __DIR__ . '/../../jwt.php';
 require_once __DIR__ . '/../../utils.php';
 require_once __DIR__ . '/../../validators.php';
+require_once __DIR__ . '/../../validators.php';
+
+use App\Services\TokenService;
 
 function register_handler(PDO $pdo){
   $b = body_json();
@@ -34,6 +37,46 @@ function login_handler(PDO $pdo){
   $u = $st->fetch(PDO::FETCH_ASSOC);
   if (!$u || !password_verify($b['password'], $u['password_hash'])) json_err('INVALID_CREDENTIALS', 401);
 
-  $token = jwt_make(['sub'=>(int)$u['user_id'], 'role'=>$u['role']]);
-  json_ok(['token'=>$token, 'user'=>['user_id'=>(int)$u['user_id'],'email'=>$u['email'],'role'=>$u['role']]]);
+  $svc = new TokenService($pdo);
+
+  $access = $svc->makeAccessToken([
+    'user_id'=>(int)$u['user_id'],
+    'role'=>$u['role']
+  ]);
+
+  $refresh = $svc->issueRefreshToken((int)$u['user_id']);
+
+  setcookie('rt', $refresh, [
+    'expires'  => time() + (int)($_ENV['JWT_REFRESH_TTL'] ?? 1209600),
+    'path'     => '/api',
+    'secure'   => filter_var($_ENV['COOKIE_SECURE'] ?? 'false', FILTER_VALIDATE_BOOLEAN),
+    'httponly' => true,
+    'samesite' => $_ENV['COOKIE_SAMESITE'] ?? 'Lax',
+  ]);
+
+  json_ok([
+    'access_token'=>$access,
+    'token_type'=>'Bearer',
+    'expires_in'=>(int)($_ENV['JWT_ACCESS_TTL'] ?? 900),
+    'user'=>['user_id'=>(int)$u['user_id'],'email'=>$u['email'],'role'=>$u['role']]
+  ]);
+
+  function logout_handler(PDO $pdo): void {
+    $rt = $_COOKIE['rt'] ?? null;
+    if ($rt) {
+      $lookup = base64url(hash('sha256', $rt, true));
+      $pdo->prepare('UPDATE refresh_tokens SET revoked_at=NOW() WHERE lookup_hash=? AND revoked_at IS NULL')->execute([$lookup]);
+      setcookie('rt','', ['expires'=>time()-3600, 'path'=>'/api']);
+    }
+    json_ok(['ok'=>true]);
+  }
+
+  function logout_all_handler(PDO $pdo): void {
+    $claims = require_auth($pdo);
+    if (!$claims) json_err('UNAUTHENTICATED', 401);
+    $pdo->prepare('UPDATE refresh_tokens SET revoked_at=NOW() WHERE user_id=? AND revoked_at IS NULL')
+        ->execute([(int)$claims['sub']]);
+    setcookie('rt','', ['expires'=>time()-3600, 'path'=>'/api']);
+    json_ok(['ok'=>true]);
+  }
 }
