@@ -11,9 +11,9 @@ final class CreateCatalogs extends AbstractMigration
     {
         if (!$this->hasTable('player_position')) {
             $this->table('player_position', ['id' => false, 'primary_key' => ['id']])
-                ->addColumn('id', 'integer', ['limit' => MysqlAdapter::INT_TINY])
+                ->addColumn('id', 'integer', ['limit' => MysqlAdapter::INT_TINY, 'null' => false])
                 ->addColumn('code', 'string', ['limit' => 5, 'null' => true])
-                ->addColumn('name', 'string', ['limit' => 40])
+                ->addColumn('name', 'string', ['limit' => 40, 'null' => false])
                 ->addIndex(['code'], ['unique' => true])
                 ->create();
         }

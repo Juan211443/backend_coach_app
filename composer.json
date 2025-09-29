@@ -7,7 +7,7 @@
     },
     "autoload-dev": {
         "classmap": ["tests/"]
-  },
+    },
     "authors": [
         {
             "name": "Juan Camilo",
@@ -40,9 +40,12 @@
           "@db:migrate:dev",
           "@db:seed:dev"
         ],
-
         "db:reset:test": "php tools/reset_test_db.php",
-        "test:integration": "composer db:reset:test && vendor/bin/phinx migrate -e test && php vendor/bin/phpunit --testsuite integration",
-        "test:unit": "./vendor/bin/phpunit --testsuite unit"
+        "test:unit": "phpunit --testsuite unit",
+        "test:integration": [
+            "@db:reset:test",
+            "phinx migrate -e test",
+            "phpunit --testsuite integration"
+        ]
     }
 }

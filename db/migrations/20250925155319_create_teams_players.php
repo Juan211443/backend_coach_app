@@ -23,9 +23,9 @@ final class CreateTeamsPlayers extends AbstractMigration
 
         if (!$this->hasTable('player')) {
             $this->table('player', ['id' => false, 'primary_key' => ['person_id']])
-                ->addColumn('person_id', 'integer', ['signed' => false])
-                ->addColumn('jersey_number', 'integer', ['limit' => MysqlAdapter::INT_TINY, 'null' => true])
-                ->addColumn('position_id', 'integer', ['limit' => MysqlAdapter::INT_TINY, 'null' => true, 'signed' => false])
+                ->addColumn('person_id', 'integer', ['null' => false, 'signed' => false])
+                ->addColumn('jersey_number', 'integer', ['limit' => MysqlAdapter::INT_TINY, 'null' => true, 'signed' => false])
+                ->addColumn('position_id', 'integer', ['limit' => MysqlAdapter::INT_TINY, 'null' => true])
                 ->addColumn('current_category_id', 'integer', ['null' => true, 'signed' => false])
                 ->addColumn('sports_academy_id', 'integer', ['null' => true, 'signed' => false])
                 ->addColumn('enrollment_year', 'integer', ['limit' => MysqlAdapter::INT_SMALL, 'null' => true])
@@ -39,13 +39,6 @@ final class CreateTeamsPlayers extends AbstractMigration
                 ->addForeignKey('current_team_id', 'team', 'id', ['delete' => 'SET_NULL', 'update' => 'NO_ACTION'])
                 ->addIndex(['current_team_id', 'jersey_number'], ['unique' => true, 'name' => 'uq_team_jersey'])
                 ->create();
-        } else {
-            if (!$this->table('player')->hasIndexByName('uq_team_jersey')) {
-                $this->table('player')->addIndex(
-                    ['current_team_id', 'jersey_number'],
-                    ['unique' => true, 'name' => 'uq_team_jersey']
-                )->update();
-            }
         }
     }
 }

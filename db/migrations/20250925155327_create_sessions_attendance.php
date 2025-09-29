@@ -33,13 +33,6 @@ final class CreateSessionsAttendance extends AbstractMigration
                 ->addForeignKey('session_id', 'session', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
                 ->addForeignKey('player_id', 'player', 'person_id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
                 ->create();
-        } else {
-            if (!$this->table('attendance')->hasIndexByName('uq_session_player')) {
-                $this->table('attendance')->addIndex(
-                    ['session_id','player_id'],
-                    ['unique' => true, 'name' => 'uq_session_player']
-                )->update();
-            }
         }
     }
 }
