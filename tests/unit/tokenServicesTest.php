@@ -3,7 +3,7 @@ use PHPUnit\Framework\TestCase;
 use CoachApp\ApiPhp\services\TokenService;
 
 require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../../src/Services/tokenService.php';
+require_once __DIR__ . '/../../src/services/tokenService.php';
 
 final class tokenServicesTest extends TestCase
 {
