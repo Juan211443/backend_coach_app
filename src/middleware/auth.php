@@ -2,7 +2,7 @@
 // middleware/auth.php
 declare(strict_types=1);
 
-use App\Services\TokenService;
+use CoachApp\ApiPhp\services\TokenService;
 
 function require_auth(PDO $pdo): array {
     $hdr = $_SERVER['HTTP_AUTHORIZATION'] ?? '';

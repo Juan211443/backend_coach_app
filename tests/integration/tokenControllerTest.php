@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use App\Services\TokenService;
+use CoachApp\ApiPhp\services\TokenService;
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../src/controllers/v1/tokenController.php';

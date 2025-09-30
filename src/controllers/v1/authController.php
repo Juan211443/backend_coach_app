@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../utils.php';
 require_once __DIR__ . '/../../validators.php';
 require_once __DIR__ . '/../../validators.php';
 
-use App\Services\TokenService;
+use CoachApp\ApiPhp\services\TokenService;
 
 function register_handler(PDO $pdo){
   $b = body_json();

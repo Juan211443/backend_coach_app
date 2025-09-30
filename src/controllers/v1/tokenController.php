@@ -1,6 +1,6 @@
 <?php
 // tokenController.php
-use App\Services\TokenService;
+use CoachApp\ApiPhp\services\TokenService;
 
 function refresh_handler(PDO $pdo): void {
     $rt = $_COOKIE['rt'] ?? null;
