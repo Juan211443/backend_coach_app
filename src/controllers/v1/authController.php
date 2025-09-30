@@ -56,6 +56,7 @@ function login_handler(PDO $pdo){
 
   json_ok([
     'access_token'=>$access,
+    'token'=>$access,
     'token_type'=>'Bearer',
     'expires_in'=>(int)($_ENV['JWT_ACCESS_TTL'] ?? 900),
     'user'=>['user_id'=>(int)$u['user_id'],'email'=>$u['email'],'role'=>$u['role']]
