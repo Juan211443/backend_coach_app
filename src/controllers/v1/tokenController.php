@@ -21,7 +21,11 @@ function refresh_handler(PDO $pdo): void {
 
     $newRt = $svc->rotateRefreshToken($row);
 
-    $user = ['user_id'=>$row['user_id'], 'role'=>'player'];
+    $st = $pdo->prepare('SELECT role FROM user WHERE user_id=?');
+    $st->execute([(int)$row['user_id']]);
+    $role = $st->fetchColumn() ?: 'player';
+
+    $user = ['user_id' => (int)$row['user_id'], 'role' => $role];
     $access = $svc->makeAccessToken($user);
 
     $secure   = filter_var($_ENV['COOKIE_SECURE'] ?? 'false', FILTER_VALIDATE_BOOLEAN);

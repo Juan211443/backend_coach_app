@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../utils.php';
 require_once __DIR__ . '/../../validators.php';
 
 function attendance_mark(PDO $pdo){
-  $claims = require_auth_role(['coach']);
+  $claims = require_auth_role(['coach'], $pdo);
 
   $b = body_json();
   must($b, ['session_id','player_id','status']);

@@ -30,6 +30,10 @@ if ($method === 'GET' && $uri === '/api/v1/health/ready') {
 
 require __DIR__ . '/../../src/db.php';
 
+if ($uri === '/api/v1/auth/register-coach' && $method === 'POST') {
+  require __DIR__ . '/../../src/controllers/v1/authController.php';
+  register_coach_handler($pdo); exit;
+}
 if ($uri === '/api/v1/auth/register' && $method === 'POST') { 
   require __DIR__ . '/../../src/controllers/v1/authController.php'; 
   register_handler($pdo); exit;
@@ -73,10 +77,6 @@ if ($uri === '/api/v1/token/refresh' && $method === 'POST') {
 if ($uri === '/api/v1/auth/logout' && $method === 'POST') {
   require __DIR__ . '/../../src/controllers/v1/authController.php';
   logout_handler($pdo); exit;
-}
-if ($uri === '/api/v1/auth/logout-all' && $method === 'POST') {
-  require __DIR__ . '/../../src/controllers/v1/authController.php';
-  logout_all_handler($pdo); exit;
 }
 http_response_code(404);
 echo json_encode(['error' => 'Not found', 'path' => $uri]);

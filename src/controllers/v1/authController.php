@@ -61,23 +61,32 @@ function login_handler(PDO $pdo){
     'expires_in'=>(int)($_ENV['JWT_ACCESS_TTL'] ?? 900),
     'user'=>['user_id'=>(int)$u['user_id'],'email'=>$u['email'],'role'=>$u['role']]
   ]);
+}
 
-  function logout_handler(PDO $pdo): void {
-    $rt = $_COOKIE['rt'] ?? null;
-    if ($rt) {
-      $lookup = base64url(hash('sha256', $rt, true));
-      $pdo->prepare('UPDATE refresh_tokens SET revoked_at=NOW() WHERE lookup_hash=? AND revoked_at IS NULL')->execute([$lookup]);
-      setcookie('rt','', ['expires'=>time()-3600, 'path'=>'/api']);
-    }
-    json_ok(['ok'=>true]);
-  }
-
-  function logout_all_handler(PDO $pdo): void {
-    $claims = require_auth($pdo);
-    if (!$claims) json_err('UNAUTHENTICATED', 401);
-    $pdo->prepare('UPDATE refresh_tokens SET revoked_at=NOW() WHERE user_id=? AND revoked_at IS NULL')
-        ->execute([(int)$claims['sub']]);
+function logout_handler(PDO $pdo): void {
+  $rt = $_COOKIE['rt'] ?? null;
+  if ($rt) {
+    $lookup = base64url(hash('sha256', $rt, true));
+    $pdo->prepare('UPDATE refresh_tokens SET revoked_at=NOW() WHERE lookup_hash=? AND revoked_at IS NULL')->execute([$lookup]);
     setcookie('rt','', ['expires'=>time()-3600, 'path'=>'/api']);
-    json_ok(['ok'=>true]);
   }
+  json_ok(['ok'=>true]);
+}
+
+function register_coach_handler(PDO $pdo){
+  $b = body_json();
+  must($b, ['email','password']);
+  assert_email($b['email']);
+  assert_password($b['password']);
+
+  $st = $pdo->prepare("SELECT user_id FROM user WHERE email=? LIMIT 1");
+  $st->execute([$b['email']]);
+  if ($st->fetch()) json_err('EMAIL_IN_USE', 409);
+
+  $hash = password_hash($b['password'], PASSWORD_BCRYPT);
+  $ins  = $pdo->prepare("INSERT INTO user (email, password_hash, role) VALUES (?,?,?)");
+  $ins->execute([$b['email'], $hash, 'coach']);
+  $userId = (int)$pdo->lastInsertId();
+
+  json_ok(['user_id'=>$userId, 'email'=>$b['email'], 'role'=>'coach'], 201);
 }

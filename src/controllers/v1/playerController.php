@@ -86,7 +86,7 @@ function player_show(PDO $pdo, int $personId){
 }
 
 function players_store(PDO $pdo){
-  $claims = require_auth_role(['coach']);
+  // $claims = require_auth_role(['coach']);
   
   $b = body_json();
   must($b, ['first_name','last_name','birth_date']);
@@ -140,16 +140,28 @@ function players_store(PDO $pdo){
 }
 
 function player_update(PDO $pdo, int $personId){
-  $claims = require_auth_role(['coach']);
+  $claims = require_auth_role(['coach'], $pdo);
 
   $b = body_json();
+
+  $nullable = [
+    'birth_date','preferred_foot','height_cm','weight_kg','phone','profile_photo_url',
+    'jersey_number','position_id','current_category_id','sports_academy_id',
+    'enrollment_year','health_status','current_injuries','current_team_id'
+  ];
+
+  foreach ($nullable as $k) {
+    if (array_key_exists($k, $b) && $b[$k] === '') {
+      $b[$k] = null;
+    }
+  }
   
-  if (array_key_exists('birth_date', $b))     assert_date($b['birth_date'], 'birth_date');
-  if (array_key_exists('preferred_foot',$b))  assert_enum($b['preferred_foot'], ['Left','Right','Both'], 'INVALID_PREFERRED_FOOT');
-  if (array_key_exists('jersey_number',$b))   assert_int_range($b['jersey_number'], 1, 99, 'jersey_number');
-  if (array_key_exists('enrollment_year',$b)) assert_int_range($b['enrollment_year'], 1900, (int)date('Y'), 'enrollment_year');
-  if (array_key_exists('height_cm',$b))       assert_decimal($b['height_cm'], 0, 300, 'height_cm');
-  if (array_key_exists('weight_kg',$b))       assert_decimal($b['weight_kg'], 0, 500, 'weight_kg');
+  if (array_key_exists('birth_date', $b))     assert_date($b['birth_date'] ?? null, 'birth_date');
+  if (array_key_exists('preferred_foot',$b))  assert_enum($b['preferred_foot'] ?? null, ['Left','Right','Both'], 'INVALID_PREFERRED_FOOT');
+  if (array_key_exists('jersey_number',$b))   assert_int_range($b['jersey_number'] ?? null, 1, 99, 'jersey_number');
+  if (array_key_exists('enrollment_year',$b)) assert_int_range($b['enrollment_year'] ?? null, 1900, (int)date('Y'), 'enrollment_year');
+  if (array_key_exists('height_cm',$b))       assert_decimal($b['height_cm'] ?? null, 0, 300, 'height_cm');
+  if (array_key_exists('weight_kg',$b))       assert_decimal($b['weight_kg'] ?? null, 0, 500, 'weight_kg');
 
   try {
     $pdo->beginTransaction();
@@ -163,7 +175,6 @@ function player_update(PDO $pdo, int $personId){
       $pVals[] = $personId;
       $pdo->prepare($sql)->execute($pVals);
     }
-
     $plCols = $plVals = [];
     foreach (['jersey_number','position_id','current_category_id','sports_academy_id','enrollment_year','health_status','current_injuries','current_team_id'] as $f) {
       if (array_key_exists($f, $b)) { $plCols[]="$f=?"; $plVals[]=$b[$f]; }
@@ -183,7 +194,7 @@ function player_update(PDO $pdo, int $personId){
 }
 
 function player_delete(PDO $pdo, int $personId){
-  $claims = require_auth_role(['coach']);
+  $claims = require_auth_role(['coach'], $pdo);
 
   try {
     $pdo->beginTransaction();

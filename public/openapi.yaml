@@ -9,11 +9,66 @@ servers:
     description: Dev
 
 tags:
+  - name: Health
   - name: Auth
+  - name: Token
   - name: Players
   - name: Attendance
+  - name: Uploads
 
 paths:
+  /health/live:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthLive'
+
+  /health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness probe
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReady'
+        '503':
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReady'
+
+  /auth/register-coach:
+    post:
+      tags: [Auth]
+      summary: Register coach
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterInput' }
+      responses:
+        '201':
+          description: Coach created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id: { type: integer }
+                  email: { type: string }
+                  role: { type: string, enum: [coach] }
+        '409': { $ref: '#/components/responses/EmailInUse' }
+
   /auth/register:
     post:
       tags: [Auth]
@@ -26,9 +81,10 @@ paths:
               $ref: '#/components/schemas/RegisterInput'
             examples:
               ok:
-                value:
-                  email: "coach@demo.com"
+                value: {
+                  email: "coach@demo.com",
                   password: "secret1234"
+                }
       responses:
         '201':
           description: Created
@@ -59,6 +115,43 @@ paths:
         '401':
           $ref: '#/components/responses/InvalidCredentials'
 
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current session (revokes current refresh token)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ok'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /token/refresh:
+    post:
+      tags: [Token]
+      summary: Rotate refresh token and issue new access token
+      description: >
+        Toma el refresh token de la cookie `rt`, rota el refresh y retorna un nuevo access token.
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshOutput'
+        '401':
+          description: Missing/invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing: { value: { error: "missing_refresh" } }
+                invalid: { value: { error: "invalid_or_reused_refresh" } }
+
   /players:
     get:
       tags: [Players]
@@ -66,15 +159,11 @@ paths:
       parameters:
         - in: query
           name: category
-          description: Category name or category year. 
+          description: Category name or category year.
           schema: { type: string }
           examples:
-            byYear:
-              summary: Exact year
-              value: "2014"
-            byName:
-              summary: Category name
-              value: "Sub-15"
+            byYear: { summary: Exact year, value: "2014" }
+            byName: { summary: Category name, value: "Sub-15" }
         - in: query
           name: team
           schema: { type: string }
@@ -84,66 +173,131 @@ paths:
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
         - in: query
           name: offset
-          schema: {
-            type: integer, minimum: 0, default: 0 }
-    responses:
-      '200':
-        description: List
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                data:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Player'
-                meta:
-                  $ref: '#/components/schemas/PagingMeta'
-            examples:
-              byCategory:
-                summary: Filtered by category 2014
-                value:
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
                   data:
-                    - person_id: 12
-                      first_name: "Camilo"
-                      last_name: "Andrés"
-                      jersey_number: 7
-                      position_id: 1
-                      position_code: "ST"
-                      position_name: "Striker"
-                      current_category_id: 5
-                      category_name: "2014"
-                      category_year: 2014
-                      current_team_id: 3
-                      team_name: "Leones A"
-                  meta: { total: 27, limit: 20, offset: 0 }
+                    type: array
+                    items: { $ref: '#/components/schemas/PlayerListItem' }
+                  meta:
+                    $ref: '#/components/schemas/PagingMeta'
+              examples:
+                byCategory:
+                  summary: Filtered by category 2014
+                  value:
+                    data:
+                      - person_id: 12
+                        first_name: "Camilo"
+                        last_name: "Andrés"
+                        jersey_number: 7
+                        position_id: 1
+                        position_code: "ST"
+                        position_name: "Striker"
+                        current_category_id: 5
+                        category_name: "2014"
+                        category_year: 2014
+                        current_team_id: 3
+                        team_name: "Leones A"
+                    meta: { total: 27, limit: 20, offset: 0 }
     post:
       tags: [Players]
       summary: Create player
-      security:
-        - bearerAuth: []
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/PlayerCreate'
+            schema: { $ref: '#/components/schemas/PlayerCreate' }
       responses:
         '200':
           description: Created player details
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/Player'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/ForbiddenRole'
+              schema: { $ref: '#/components/schemas/PlayerDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ForbiddenRole' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /players/{personId}:
+    get:
+      tags: [Players]
+      summary: Get player by personId
+      parameters:
+        - in: path
+          name: personId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlayerDetail' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    put:
+      tags: [Players]
+      summary: Update player
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: personId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlayerUpdate' }
+      responses:
+        '200':
+          description: Updated player details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlayerDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ForbiddenRole' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [Players]
+      summary: Delete player
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: personId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ForbiddenRole' }
+        '500': { $ref: '#/components/responses/InternalError' }
 
   /uploads/profile-photo:
     post:
-      tags: [Players]
+      tags: [Uploads]
       summary: Upload a profile photo
       security:
         - bearerAuth: []
@@ -154,34 +308,20 @@ paths:
             schema:
               type: object
               properties:
-                file:
-                  type: string
-                  format: binary
+                file: { type: string, format: binary }
               required: [file]
       responses:
         '201':
           description: Created
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  url: { type: string }
-                  filename: { type: string }
-                  mime: { type: string }
-                  size: { type: integer }
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/ForbiddenRole'
-        '413':
-          $ref: '#/components/responses/PayloadTooLarge'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '500':
-          $ref: '#/components/responses/InternalError'
+              schema: { $ref: '#/components/schemas/UploadProfilePhotoResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ForbiddenRole' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalError' }
 
   /attendance:
     post:
@@ -193,15 +333,16 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/AttendanceMark'
+            schema: { $ref: '#/components/schemas/AttendanceMark' }
       responses:
         '201':
           description: Created
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/ForbiddenRole'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ForbiddenRole' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /attendance/summary/{playerId}:
     get:
@@ -211,25 +352,19 @@ paths:
         - in: path
           name: playerId
           required: true
-          schema:
-            type: integer
+          schema: { type: integer }
         - in: query
           name: year
-          schema:
-            type: integer
+          schema: { type: integer }
         - in: query
           name: month
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 12
+          schema: { type: integer, minimum: 1, maximum: 12 }
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/AttendanceSummary'
+              schema: { $ref: '#/components/schemas/AttendanceSummary' }
 
 components:
   securitySchemes:
@@ -243,32 +378,27 @@ components:
       description: Unauthorized
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
     ForbiddenRole:
       description: Role not allowed
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
     EmailInUse:
       description: Email already in use
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
     InvalidCredentials:
       description: Invalid credentials
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
     BadRequest:
       description: Bad request (missing or invalid parameters)
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
           examples:
             fileRequired: { value: { error: "FILE_REQUIRED" } }
             uploadFailed: { value: { error: "UPLOAD_FAILED" } }
@@ -276,142 +406,131 @@ components:
       description: Payload too large
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
           examples:
             tooLarge: { value: { error: "IMAGE_TOO_LARGE_MAX_5MB" } }
-
     UnprocessableEntity:
       description: Validation error
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+          schema: { $ref: '#/components/schemas/Error' }
           examples:
             unsupportedType: { value: { error: "UNSUPPORTED_IMAGE_TYPE" } }
-
     InternalError:
       description: Internal server error
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            moveFailed: { value: { error: "MOVE_FAILED" } }
+          schema: { $ref: '#/components/schemas/Error' }
 
   schemas:
+    Ok:
+      type: object
+      properties:
+        ok: { type: boolean, default: true }
+
     Error:
       type: object
       properties:
-        error:
-          type: string
+        error: { type: string }
+
+    HealthLive:
+      type: object
+      properties:
+        status: { type: string, enum: [ok] }
+
+    HealthReady:
+      type: object
+      properties:
+        db: { type: boolean }
+        time: { type: string, format: date-time }
 
     PagingMeta:
       type: object
       properties:
-        total:
-          type: integer
-        limit:
-          type: integer
-        offset:
-          type: integer
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
 
     RegisterInput:
       type: object
       required: [email, password]
       properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          minLength: 8
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
 
     RegisterOutput:
       type: object
       properties:
-        data:
-          type: object
-          properties:
-            user_id:
-              type: integer
-            email:
-              type: string
-              format: email
-            role:
-              type: string
-              enum: [player, coach]
+        user_id: { type: integer }
+        email: { type: string, format: email }
+        role: { type: string, enum: [player, coach] }
 
     LoginInput:
       type: object
       required: [email, password]
       properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
+        email: { type: string, format: email }
+        password: { type: string }
+
+    UserBasic:
+      type: object
+      properties:
+        user_id: { type: integer }
+        email: { type: string }
+        role: { type: string }
 
     LoginOutput:
       type: object
       properties:
-        token:
-          type: string
-        user:
-          type: object
-          properties:
-            user_id:
-              type: integer
-            email:
-              type: string
-            role:
-              type: string
+        access_token: { type: string }
+        token: { type: string, description: "alias de access_token" }
+        token_type: { type: string, example: "Bearer" }
+        expires_in: { type: integer, example: 900 }
+        user: { $ref: '#/components/schemas/UserBasic' }
 
-    Player:
+    RefreshOutput:
+      type: object
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, example: "Bearer" }
+        expires_in: { type: integer, example: 900 }
+
+    PlayerListItem:
       type: object
       properties:
         person_id: { type: integer }
         first_name: { type: string }
         last_name:  { type: string }
-        birth_date:
-          type: string
-          format: date
-        preferred_foot:
-          type: string
-          enum: [Left, Right, Both]
-        jersey_number:
-          type: integer
-          nullable: true
-        position_id:
-          type: integer
-          nullable: true
-        position_code:
-          type: string
-          nullable: true
-        position_name:
-          type: string
-          nullable: true
-        current_category_id:
-          type: integer
-          nullable: true
-        category_name:
-          type: string
-          nullable: true
-        category_year:
-          type: integer
-          nullable: true
-        current_team_id:
-          type: integer
-          nullable: true
-        team_name:
-          type: string
-          nullable: true
-        academy_name:
-          type: string
-          nullable: true
-        profile_photo_url:
-          type: string
-          nullable: true
+        jersey_number: { type: integer, nullable: true }
+        position_id: { type: integer, nullable: true }
+        position_code: { type: string, nullable: true }
+        position_name: { type: string, nullable: true }
+        current_category_id: { type: integer, nullable: true }
+        category_name: { type: string, nullable: true }
+        category_year: { type: integer, nullable: true }
+        current_team_id: { type: integer, nullable: true }
+        team_name: { type: string, nullable: true }
+
+    PlayerDetail:
+      type: object
+      properties:
+        person_id: { type: integer }
+        first_name: { type: string }
+        last_name:  { type: string }
+        birth_date: { type: string, format: date, nullable: true }
+        preferred_foot: { type: string, enum: [Left, Right, Both], nullable: true }
+        height_cm: { type: number, nullable: true }
+        weight_kg: { type: number, nullable: true }
+        phone:     { type: string, nullable: true }
+        profile_photo_url: { type: string, nullable: true }
+        jersey_number: { type: integer, nullable: true }
+        position_id: { type: integer, nullable: true }
+        current_category_id: { type: integer, nullable: true }
+        sports_academy_id: { type: integer, nullable: true }
+        enrollment_year: { type: integer, nullable: true }
+        health_status: { type: string, nullable: true }
+        current_injuries: { type: string, nullable: true }
+        current_team_id: { type: integer, nullable: true }
 
     PlayerCreate:
       type: object
@@ -419,21 +538,49 @@ components:
       properties:
         first_name: { type: string }
         last_name:  { type: string }
-        birth_date:
-          type: string
-          format: date
-        jersey_number:
-          type: integer
-          minimum: 1
-          maximum: 99
-          nullable: true
-        preferred_foot:
-          type: string
-          enum: [Left, Right, Both]
-          default: Right
-        profile_photo_url:
-          type: string
-          nullable: true
+        birth_date: { type: string, format: date }
+        jersey_number: { type: integer, minimum: 1, maximum: 99, nullable: true }
+        preferred_foot: { type: string, enum: [Left, Right, Both], default: Right }
+        profile_photo_url: { type: string, nullable: true }
+        position_id: { type: integer, nullable: true }
+        current_category_id: { type: integer, nullable: true }
+        sports_academy_id: { type: integer, nullable: true }
+        enrollment_year: { type: integer, nullable: true }
+        health_status: { type: string, nullable: true }
+        current_injuries: { type: string, nullable: true }
+        current_team_id: { type: integer, nullable: true }
+        height_cm: { type: number, nullable: true }
+        weight_kg: { type: number, nullable: true }
+        phone: { type: string, nullable: true }
+
+    PlayerUpdate:
+      type: object
+      description: Campos opcionales; solo los presentes serán actualizados.
+      properties:
+        first_name: { type: string }
+        last_name:  { type: string }
+        birth_date: { type: string, format: date }
+        preferred_foot: { type: string, enum: [Left, Right, Both] }
+        height_cm: { type: number }
+        weight_kg: { type: number }
+        phone: { type: string }
+        profile_photo_url: { type: string }
+        jersey_number: { type: integer, minimum: 1, maximum: 99 }
+        position_id: { type: integer }
+        current_category_id: { type: integer }
+        sports_academy_id: { type: integer }
+        enrollment_year: { type: integer }
+        health_status: { type: string }
+        current_injuries: { type: string }
+        current_team_id: { type: integer }
+
+    UploadProfilePhotoResponse:
+      type: object
+      properties:
+        url: { type: string }
+        filename: { type: string }
+        mime: { type: string }
+        size: { type: integer }
 
     AttendanceMark:
       type: object
@@ -441,16 +588,9 @@ components:
       properties:
         session_id: { type: integer }
         player_id:  { type: integer }
-        status:
-          type: string
-          enum: [present, absent, late, excused]
-        checkin_at:
-          type: string
-          format: date-time
-          nullable: true
-        remarks:
-          type: string
-          nullable: true
+        status: { type: string, enum: [present, absent, late, excused] }
+        checkin_at: { type: string, format: date-time, nullable: true }
+        remarks: { type: string, nullable: true }
 
     AttendanceSummary:
       type: object

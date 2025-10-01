@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../utils.php';
 require_once __DIR__ . '/../../validators.php';
 
 function upload_profile_photo(PDO $pdo) {
-  $claims = require_auth_role(['coach','player']);
 
   if (!isset($_FILES['file'])) json_err('FILE_REQUIRED', 400);
 
